@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.*;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.excellentcrates.CratesPlugin;
+import su.nightexpress.excellentcrates.user.CrateUser;
 import su.nightexpress.nightcore.manager.AbstractListener;
 
 import java.util.stream.Stream;
@@ -29,6 +30,8 @@ public class KeyListener extends AbstractListener<CratesPlugin> {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        CrateUser user = this.plugin.getUserManager().getOrFetch(player);
+        this.plugin.getDataHandler().refreshUserData(user);
         this.manager.giveKeysOnHold(player);
     }
 

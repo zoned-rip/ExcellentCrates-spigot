@@ -125,8 +125,13 @@ public class DataHandler extends AbstractUserDataManager<CratesPlugin, CrateUser
                 long lastOnline = resultSet.getLong(COLUMN_USER_LAST_ONLINE.getName());
 
                 Map<String, Integer> keys = this.gson.fromJson(resultSet.getString(COLUMN_KEYS.getName()), new TypeToken<Map<String, Integer>>() {}.getType());
+                if (keys == null) keys = new HashMap<>();
+
                 Map<String, Integer> keysOnHold = this.gson.fromJson(resultSet.getString(COLUMN_KEYS_ON_HOLD.getName()), new TypeToken<Map<String, Integer>>() {}.getType());
+                if (keysOnHold == null) keysOnHold = new HashMap<>();
+
                 Map<String, UserCrateData> crateDataMap = this.gson.fromJson(resultSet.getString(COLUMN_CRATE_DATA.getName()), new TypeToken<Map<String, UserCrateData>>(){}.getType());
+                if (crateDataMap == null) crateDataMap = new HashMap<>();
 
                 return new CrateUser(uuid, name, dateCreated, lastOnline, keys, keysOnHold, crateDataMap);
             }
@@ -147,16 +152,23 @@ public class DataHandler extends AbstractUserDataManager<CratesPlugin, CrateUser
             Player player = user.getPlayer();
             if (player != null && plugin.getOpeningManager().isOpening(player)) continue;
 
-            CrateUser fresh = this.getUser(user.getId());
-            if (fresh == null) continue;
-
-            user.getKeysMap().clear();
-            user.getKeysMap().putAll(fresh.getKeysMap());
-            user.getCrateDataMap().clear();
-            user.getCrateDataMap().putAll(fresh.getCrateDataMap());
+            this.refreshUserData(user);
         }
 
         this.plugin.getDataManager().handleSynchronization();
+    }
+
+    public void refreshUserData(@NotNull CrateUser user) {
+        CrateUser fresh = this.getUser(user.getId());
+        if (fresh == null) return;
+
+        user.getKeysMap().clear();
+        user.getKeysMap().putAll(fresh.getKeysMap());
+
+        user.getKeysOnHold().clear();
+        user.getKeysOnHold().putAll(fresh.getKeysOnHold());
+        user.getCrateDataMap().clear();
+        user.getCrateDataMap().putAll(fresh.getCrateDataMap());
     }
 
     @Override
